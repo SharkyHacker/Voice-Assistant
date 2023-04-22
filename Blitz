@@ -1,0 +1,75 @@
+import os
+from pygame import *
+from gtts import gTTS
+import json, pyaudio
+import webbrowser
+import datetime
+from vosk import Model, KaldiRecognizer
+
+model = Model('model_small')
+rec = KaldiRecognizer(model, 16000)
+p = pyaudio.PyAudio()
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
+stream.start_stream()
+
+def broadcast(what):
+    tts = gTTS(what, lang='ru')
+    tts.save('output.mp3')
+    mixer.init()
+    mixer.music.load('output.mp3')
+    mixer.music.play()
+    print(what)
+
+def listen():
+    while True:
+        data = stream.read(4000, exception_on_overflow=False)
+        if (rec.AcceptWaveform(data)) and (len(data) > 0):
+            answer = json.loads(rec.Result())
+            if answer['text']:
+                yield answer['text']
+for text in listen():
+    if text == ('пакета'):
+        print('Оки, увидимся позже')
+        quit()
+    
+
+    elif text == ('хай'):
+        print('Хэллоу, амиго!')
+        print('Я блиц, оу не произносится!')
+    
+    elif text == ('время'):
+        now = datetime.datetime.now()
+        broadcast("Щяс " + str(now.hour+4) + ":" + str(now.minute))
+    elif text == ('вруби гид хаб'):
+        print('Ладненько, я открыл GitHub')
+        webbrowser.open('https://github.com', new=2)
+    elif text == ('вруби мой гид хаб'):
+        print('Ладненько, я открыл твой GitHub')
+        webbrowser.open('https://github.com/SharkyHacker', new=2)
+    elif text == ('открой телегу'):
+        print('Ха, телега запущена!')
+        webbrowser.open('https://web.telegram.org', new=2)
+    elif text == ('вруби ютуб'):
+        print('Ютубчик открыт')
+        webbrowser.open('https://youtube.com')
+    elif text == ('открой гугл'):
+        print('Гугл уже в твоём браузере')
+        webbrowser.open('https:///google.com')
+    elif text == ('мой канал'):
+        print('Твой канал уже в одной из вкладок')
+        webbrowser.open('https://www.youtube.com/channel/UCRzWCd06wDoWRJKfZi4nOBw')
+    # elif text == ('закрой браузер'):
+    #     os.system('taskkill /im operaGX.exe /f')
+    # elif text == ('включи глав страницу'):
+    #     print('открываю главную страницу')
+    #     webbrowser.open('opera://startpage')
+    else:
+        a = input('Способ? "1"- гуглить, "2" - в ютубчике, любой другой символ - отмена поиска ')
+        if a == ('1'):
+            print('Уже ищем!')
+            webbrowser.open('https://www.google.com/search?client=opera-gx&q='+ text +'&sourceid=opera&ie=UTF-8&oe=UTF-8')
+        elif a == ('2'):
+            print('Запрос уже вбит в окне ютуба')
+            webbrowser.open('https://www.youtube.com/results?search_query=' + text)
+        else:
+            print('Океюшки, нет так нет!')
